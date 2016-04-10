@@ -8,6 +8,10 @@ import (
 
 var elevator Elevator
 
+func Fsm_elevator() Elevator{
+	return elevator
+}
+
 func Fsm_printstatus() {
 	for {
 		for newlines := 0; newlines < 50; newlines++ {
@@ -54,7 +58,7 @@ func Fsm_onInitBetweenFloors() {
 		}
 	}
 }
-
+/*
 func Fsm_onRequestButtonPress(btn_floor int, btn_type ButtonType, newOrderChan chan Keypress){
 	switch btn_type{
 		case B_Inside:
@@ -66,8 +70,9 @@ func Fsm_onRequestButtonPress(btn_floor int, btn_type ButtonType, newOrderChan c
 			break
 	}
 }
+*/
 	
-func Fsm_neworder(btn_floor int, btn_type ButtonType){
+func Fsm_neworder(btn_floor int, btn_type int){
 	
 	switch elevator.Behaviour {
 
@@ -102,9 +107,7 @@ func Fsm_neworder(btn_floor int, btn_type ButtonType){
 	}
 
 	setAllLights(elevator)
-
 }
-
 
 func Fsm_onFloorArrival(newFloor int) {
 
