@@ -2,6 +2,7 @@ package operations
 
 import (
 	"driver"
+	"fmt"
 	"time"
 )
 
@@ -60,6 +61,8 @@ func Requests_chooseDirection(e Elevator) Direction {
 }
 
 func Requests_shouldStop(e Elevator) bool {
+	fmt.Println("Request_ss: q1 ")
+	fmt.Println(e)
 	switch e.Dir {
 	case DIRN_DOWN:
 		return (e.Requests[e.Floor][0] || e.Requests[e.Floor][2] || (!Requests_below(e)))
@@ -109,7 +112,7 @@ func Request_buttons(newOrderChan chan Keypress) {
 				buttonPressed := driver.Elev_get_button_signal(btn, floor)
 				if buttonPressed && buttonPressed != prevReq[floor][btn] {
 					//Fsm_onRequestButtonPress(floor, ButtonType(btn),newOrderChan)
-					newOrderChan <- Keypress{floor,btn}
+					newOrderChan <- Keypress{floor, btn}
 				}
 				prevReq[floor][btn] = buttonPressed
 			}
@@ -130,12 +133,12 @@ func Request_floorSensor() {
 		time.Sleep(25 * time.Millisecond)
 	}
 }
-func Request_timecheck(){
+func Request_timecheck() {
 	for {
-			if Timer_timedout() {
-				Fsm_onDoorTimeout()
-				Timer_stop()
-			}
-			time.Sleep(25 * time.Millisecond)
+		if Timer_timedout() {
+			Fsm_onDoorTimeout()
+			Timer_stop()
+		}
+		time.Sleep(25 * time.Millisecond)
 	}
 }

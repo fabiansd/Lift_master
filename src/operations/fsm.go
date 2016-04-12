@@ -8,10 +8,15 @@ import (
 
 var elevator Elevator
 
-func Fsm_elevator() Elevator{
+func Fsm_elevator() Elevator {
 	return elevator
 }
-
+func Fsm_floor() int {
+	return elevator.Floor
+}
+func Fsm_direction() Direction {
+	return (elevator.Dir)
+}
 func Fsm_printstatus() {
 	for {
 		for newlines := 0; newlines < 50; newlines++ {
@@ -48,32 +53,8 @@ func setAllLights(es Elevator) {
 	}
 }
 
-func Fsm_onInitBetweenFloors() {
-	driver.Elev_set_motor_direction(int(DIRN_DOWN))
+func Fsm_neworder(btn_floor int, btn_type int) {
 
-	for {
-		if driver.Elev_get_floor_sensor_signal() != -1 {
-			driver.Elev_set_motor_direction(int(DIRN_STOP))
-			break
-		}
-	}
-}
-/*
-func Fsm_onRequestButtonPress(btn_floor int, btn_type ButtonType, newOrderChan chan Keypress){
-	switch btn_type{
-		case B_Inside:
-			Fsm_neworder(btn_floor,btn_type)
-			break
-		default:
-			fmt.Println("default_rqBut")
-			newOrderChan <- Keypress{btn_floor,btn_type}
-			break
-	}
-}
-*/
-	
-func Fsm_neworder(btn_floor int, btn_type int){
-	
 	switch elevator.Behaviour {
 
 	case EB_DoorOpen:

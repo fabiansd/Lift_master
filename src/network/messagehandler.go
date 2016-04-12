@@ -1,10 +1,10 @@
 package network
 
 import (
-	"operations"
 	"encoding/json"
 	"fmt"
 	"log"
+	"operations"
 	"time"
 )
 
@@ -29,12 +29,10 @@ func Init(outgoingMsg, incomingMsg chan operations.Udp_message) {
 	log.Println("Network initialised.")
 }
 
-
-// aliveSpammer periodically sends messages on the network to notify all
-// lifts that this lift is still online ("alive").
+// aliveSpammer periodically sends messages on the network to notify it is alive
 func aliveSpammer(outgoingMsg chan<- operations.Udp_message) {
 	const spamInterval = 500 * time.Millisecond
-	alive := operations.Udp_message{Category: operations.Livefeed, Floor: -1, Button: -1, Cost: -1}
+	alive := operations.Udp_message{Category: operations.Livefeed, Floor: -1, Button: -1, Cost: 0}
 	for {
 		outgoingMsg <- alive
 		time.Sleep(spamInterval)
@@ -43,7 +41,7 @@ func aliveSpammer(outgoingMsg chan<- operations.Udp_message) {
 
 // forwardOutgoing continuosly checks for messages to be sent on the network
 // by reading the OutgoingMsg channel. Each message read is sent to the udp file
-// as JSON.
+// as json.
 func forwardOutgoing(outgoingMsg <-chan operations.Udp_message, udpSend chan<- udpMessage) {
 	for {
 		msg := <-outgoingMsg

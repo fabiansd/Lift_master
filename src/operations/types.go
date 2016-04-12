@@ -1,6 +1,6 @@
 package operations
 
-import(
+import (
 	"driver"
 )
 
@@ -36,19 +36,19 @@ type Elevator struct {
 	Requests  [driver.N_FLOORS][driver.N_BUTTONS]bool
 }
 
-type Udp_message struct{
+type Udp_message struct {
 	Category int
-	Floor int
-	Button int
-	Cost int
-	Addr string `json:"-"`
+	Floor    int
+	Button   int
+	Cost     int
+	Addr     string `json:"-"`
 }
 
 var Laddr string //local IP address
 var CloseConnectionChan = make(chan bool)
 
-type Keypress struct{
-	Floor int
+type Keypress struct {
+	Floor  int
 	Button int
 }
 

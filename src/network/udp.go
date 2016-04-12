@@ -1,9 +1,9 @@
 package network
 
 import (
-	"operations"
 	"fmt"
 	"net"
+	"operations"
 	"strconv"
 	"time"
 )
@@ -131,6 +131,7 @@ func udp_connection_reader(conn *net.UDPConn, message_size int, rcv_ch chan<- ud
 		buf := make([]byte, message_size)
 		//		fmt.Printf("udp_connection_reader: Waiting on data from UDPConn\n")
 		n, raddr, err := conn.ReadFromUDP(buf)
+		buf = buf[:n]
 		//		fmt.Printf("udp_connection_reader: Received %s from %s \n", string(buf), raddr.String())
 		if err != nil || n < 0 {
 			fmt.Printf("Error: udp_connection_reader: reading\n")
