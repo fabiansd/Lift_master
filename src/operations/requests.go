@@ -63,8 +63,6 @@ func Requests_chooseDirection(e Elevator) Direction {
 }
 
 func Requests_shouldStop(e Elevator) bool {
-	fmt.Println("Request_ss: q1 ")
-	fmt.Println(e)
 	switch e.Dir {
 	case DIRN_DOWN:
 		return (e.Requests[e.Floor][0] || e.Requests[e.Floor][2] || (!Requests_below(e)))
