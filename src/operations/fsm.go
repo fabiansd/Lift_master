@@ -53,6 +53,7 @@ func setAllLights(es Elevator) {
 	}
 }
 
+//Setting new order in the elevators requests
 func Fsm_neworder(btn_floor int, btn_type int) {
 
 	switch elevator.Behaviour {
