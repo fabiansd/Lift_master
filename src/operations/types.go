@@ -3,8 +3,8 @@ package operations
 import (
 	"driver"
 )
-
-type Direction int
+//Types og directions
+type Direction int 
 
 const (
 	DIRN_DOWN = -1 + iota
