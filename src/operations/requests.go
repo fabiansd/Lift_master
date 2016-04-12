@@ -61,7 +61,7 @@ func Requests_chooseDirection(e Elevator) Direction {
 		return DIRN_STOP
 	}
 }
-
+// Check if the assigned elevator should stop on the assigned floor
 func Requests_shouldStop(e Elevator) bool {
 	switch e.Dir {
 	case DIRN_DOWN:
@@ -74,7 +74,7 @@ func Requests_shouldStop(e Elevator) bool {
 		return true
 	}
 }
-
+// Clears the orders on the current floor for the assigned elevator
 func Requests_clearAtCurrentFloor(e Elevator) Elevator {
 
 	e.Requests[e.Floor][B_Inside] = false
@@ -101,7 +101,7 @@ func Requests_clearAtCurrentFloor(e Elevator) Elevator {
 	}
 	return e
 }
-
+// Checking for new orders and assign the new order to the newOrderChan
 func Request_buttons(newOrderChan chan Keypress) {
 
 	for {
