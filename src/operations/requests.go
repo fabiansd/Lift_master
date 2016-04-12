@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+
+//Checking for requests above the assigned elevator
 func Requests_above(e Elevator) bool {
 	for f := e.Floor + 1; f < driver.N_FLOORS; f++ {
 		for btn := 0; btn < driver.N_BUTTONS; btn++ {
@@ -16,7 +18,7 @@ func Requests_above(e Elevator) bool {
 	}
 	return false
 }
-
+//Checking for requests below the assigned elevator
 func Requests_below(e Elevator) bool {
 	for f := 0; f < e.Floor; f++ {
 		for btn := 0; btn < driver.N_BUTTONS; btn++ {
@@ -27,7 +29,7 @@ func Requests_below(e Elevator) bool {
 	}
 	return false
 }
-
+//Chooses the direction for the assigned elevator
 func Requests_chooseDirection(e Elevator) Direction {
 	switch e.Dir {
 	case DIRN_UP:
