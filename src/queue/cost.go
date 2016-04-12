@@ -6,52 +6,50 @@ import (
 	"log"
 	"operations"
 )
-
+//Calculates cost by simulating the new order among the existing local orders for the elevator
+//Each floor-stop and travel between floors has cost of 2
+//If the elevator starts between two floors, the cost will only be 1 for this
 func CalCost(tarFloor, tarBtn, prevFloor, curFloor, curDir int) int {
 	fmt.Println("copy of elevator")
-	var q1 operations.Elevator
-	q1.Floor = 1
-	q1.PrevFloor = 1
-	q1.Dir = operations.Direction(1)
-	q1.Behaviour = operations.EB_Moving
-	//q1.Requests = operations.[driver.N_FLOORS][driver.N_BUTTONS]bool
-
-	//var q operations.Elevator
-	//fmt.Println("new")
-	for f := 0; f < driver.N_FLOORS; f++ {
+	var qCopy operations.Elevator
+	qCopy.Floor = operations.Fsm_floor() //Copies floor
+	qCopy.Dir = operations.Fsm_direction() //Copies the direction of the local elevator
+	
+	for f := 0; f < driver.N_FLOORS; f++ {//copying local requests
 		for b := 0; b < driver.N_BUTTONS; b++ {
-			q1.Requests[f][b] = operations.Fsm_elevator().Requests[f][b]
+			qCopy.Requests[f][b] = operations.Fsm_elevator().Requests[f][b]
 		}
 	}
 
 	cost := 0
-	//q.Floor = prevFloor
-	//q.Dir = operations.Direction(curDir)
-	//q.Requests[q.Floor][operations.B_Inside] = true
+	qCopy.Requests[q.Floor][operations.B_Inside] = true //Adding the target order
+	qCopy.Dir =operations.Requests_chooseDirection //start the elevator in the right direction
+	
 	//fmt.Println("copied")
 	fmt.Println(q1)
 
 	if curFloor == -1 {
 		//cost is set to one if elev between two floors
 		cost++
-	} else if q1.Dir != operations.DIRN_STOP {
-		cost += 2
+	} else if qCopy.Dir != operations.DIRN_STOP {
 		//cost is set to two if elev moving at floor
+		cost += 2
 	}
-	q1.Floor, q1.Dir = incrementFloor(q1.Floor, int(q1.Dir))
+	qCopy.Floor, qCopy.Dir = incrementFloor(qCopy.Floor, int(qCopy.Dir))//First incrementation
 	//fmt.Println(cost)
-	for n := 0; !(q1.Floor == tarFloor && operations.Requests_shouldStop(q1)) && n < 10; n++ {
+	//Iterates through the orders, with an upper limit of 10
+	for n := 0; !(qCopy.Floor == tarFloor && operations.Requests_shouldStop(qCopy)) && n < 10; n++ {
 		//if !(q1.Floor == tarFloor) &&
-
 		//!(q1.Floor == tarFloor && operations.Requests_shouldStop(q1)) && {
-		if operations.Requests_shouldStop(q1) {
+		if operations.Requests_shouldStop(qCopy) {
 			cost += 2
-			q1.Requests[q1.Floor][operations.B_Up] = false
-			q1.Requests[q1.Floor][operations.B_Down] = false
-			q1.Requests[q1.Floor][operations.B_Inside] = false
+			qCopy = operations.Requests_clearAtCurrentFloor(e)
+			//qCopy.Requests[q1.Floor][operations.B_Up] = false
+			//qCopy.Requests[q1.Floor][operations.B_Down] = false
+			//qCopy.Requests[q1.Floor][operations.B_Inside] = false
 		}
-		q1.Dir = operations.Requests_chooseDirection(q1)
-		q1.Floor, q1.Dir = incrementFloor(q1.Floor, int(q1.Dir))
+		qCopy.Dir = operations.Requests_chooseDirection(qCopy)
+		qCopy.Floor, qCopy.Dir = incrementFloor(qCopy.Floor, int(qCopy.Dir))
 		cost += 2
 	}
 	return cost
@@ -64,7 +62,7 @@ func incrementFloor(floor, dir int) (int, operations.Direction) {
 	case operations.DIRN_UP:
 		floor++
 	case operations.DIRN_STOP:
-		//No in/decrement
+		//No incrementation, stay on this floor
 	default:
 		//CloseConnectionChan <- true
 		//Restart.Run()
