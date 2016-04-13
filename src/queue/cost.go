@@ -2,7 +2,6 @@ package queue
 
 import (
 	"driver"
-	"fmt"
 	"log"
 	"operations"
 )
@@ -11,7 +10,7 @@ import (
 //Each floor-stop and travel between floors has cost of 2
 //If the elevator starts between two floors, the cost will only be 1 for this
 func CalCost(tarFloor, tarBtn, prevFloor, curFloor, curDir int) int {
-	fmt.Println("copy of elevator")
+	//fmt.Println("copy of elevator")
 	var qCopy operations.Elevator
 	qCopy.Floor = operations.Fsm_floor()     //Copies floor
 	qCopy.Dir = operations.Direction(curDir) //Copies the direction of the local elevator
@@ -25,7 +24,6 @@ func CalCost(tarFloor, tarBtn, prevFloor, curFloor, curDir int) int {
 	cost := 0
 
 	qCopy.Requests[qCopy.Floor][tarBtn] = true
-	fmt.Println(qCopy.Requests) //Adding the target order
 	//start the elevator in the right direction
 	if tarFloor-curFloor < 0 {
 		qCopy.Dir = -1
@@ -47,7 +45,7 @@ func CalCost(tarFloor, tarBtn, prevFloor, curFloor, curDir int) int {
 		//if !(q1.Floor == tarFloor) &&
 		//!(q1.Floor == tarFloor && operations.Requests_shouldStop(q1)) && {
 		if operations.Requests_shouldStop(qCopy) {
-			fmt.Println("ShouldStop")
+			//fmt.Println("ShouldStop")
 			cost += 2
 			qCopy = operations.Requests_clearAtCurrentFloor(qCopy)
 			//qCopy.Requests[q1.Floor][operations.B_Up] = false
@@ -72,7 +70,7 @@ func incrementFloor(floor, dir int) (int, operations.Direction) {
 	case 1: //operations.DIRN_UP:
 		floor++
 	case 0: //operations.DIRN_STOP:
-		fmt.Println("stopDirn")
+		//fmt.Println("stopDirn")
 		//No incrementation, stay on this floor
 	default:
 		//CloseConnectionChan <- true

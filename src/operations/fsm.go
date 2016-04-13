@@ -76,8 +76,9 @@ func Fsm_neworder(btn_floor int, btn_type int) {
 		elevator.Dir = Requests_chooseDirection(elevator)
 
 		if elevator.Dir == DIRN_STOP {
+			fmt.Println("Clear the floor!=")
 			driver.Elev_set_door_open_lamp(true)
-			elevator = Requests_clearAtCurrentFloor(elevator)
+			elevator = Requests_clearAllAtCurrentFloor(elevator)
 			Timer_start()
 			elevator.Behaviour = EB_DoorOpen
 		} else {

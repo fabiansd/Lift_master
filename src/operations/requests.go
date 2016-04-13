@@ -2,7 +2,6 @@ package operations
 
 import (
 	"driver"
-
 	"time"
 )
 
@@ -102,6 +101,13 @@ func Requests_clearAtCurrentFloor(e Elevator) Elevator {
 		e.Requests[e.Floor][B_Down] = false
 		break
 	}
+	return e
+}
+
+func Requests_clearAllAtCurrentFloor(e Elevator) Elevator {
+	e.Requests[e.Floor][B_Up] = false
+	e.Requests[e.Floor][B_Down] = false
+	e.Requests[e.Floor][B_Inside] = false
 	return e
 }
 

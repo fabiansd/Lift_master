@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"operations"
-	"time"
+	"os"
 )
 
 func Init(outgoingMsg, incomingMsg chan operations.Udp_message) {
@@ -22,7 +23,6 @@ func Init(outgoingMsg, incomingMsg chan operations.Udp_message) {
 		fmt.Print("UdpInit() error: %v \n", err)
 	}
 
-	go aliveSpammer(outgoingMsg)
 	go forwardOutgoing(outgoingMsg, udpSend)
 	go forwardIncoming(incomingMsg, udpReceive)
 
@@ -30,13 +30,21 @@ func Init(outgoingMsg, incomingMsg chan operations.Udp_message) {
 }
 
 // aliveSpammer periodically sends messages on the network to notify it is alive
-func aliveSpammer(outgoingMsg chan<- operations.Udp_message) {
-	const spamInterval = 500 * time.Millisecond
-	alive := operations.Udp_message{Category: operations.Livefeed, Floor: -1, Button: -1, Cost: 0}
-	for {
-		outgoingMsg <- alive
-		time.Sleep(spamInterval)
+func GetLocalIP() string {
+	var localIP string
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		os.Stderr.WriteString("Oops: " + err.Error() + "\n")
+		os.Exit(1)
 	}
+	for _, a := range addrs {
+		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				localIP = ipnet.IP.String()
+			}
+		}
+	}
+	return localIP
 }
 
 // forwardOutgoing continuosly checks for messages to be sent on the network

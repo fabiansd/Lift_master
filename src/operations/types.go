@@ -3,8 +3,9 @@ package operations
 import (
 	"driver"
 )
+
 //Types og directions
-type Direction int 
+type Direction int
 
 const (
 	DIRN_DOWN = -1 + iota
@@ -37,11 +38,12 @@ type Elevator struct {
 }
 
 type Udp_message struct {
-	Category int
-	Floor    int
-	Button   int
-	Cost     int
-	Addr     string `json:"-"`
+	Category   int
+	Floor      int
+	Button     int
+	Cost       int
+	Addr       string
+	AssignAddr string
 }
 
 var Laddr string //local IP address
@@ -57,4 +59,5 @@ const (
 	NewOrder
 	CompletedOrder
 	Cost
+	AssignedOrder
 )
