@@ -2,33 +2,34 @@ package operations
 
 import (
 	"driver"
-	"fmt"
+
 	"time"
 )
-
 
 //Checking for requests above the assigned elevator
 func Requests_above(e Elevator) bool {
 	for f := e.Floor + 1; f < driver.N_FLOORS; f++ {
 		for btn := 0; btn < driver.N_BUTTONS; btn++ {
-			if Fsm_elevator().Requests[f][btn] {
+			if e.Requests[f][btn] {
 				return true
 			}
 		}
 	}
 	return false
 }
+
 //Checking for requests below the assigned elevator
 func Requests_below(e Elevator) bool {
 	for f := 0; f < e.Floor; f++ {
 		for btn := 0; btn < driver.N_BUTTONS; btn++ {
-			if Fsm_elevator().Requests[f][btn] {
+			if e.Requests[f][btn] {
 				return true
 			}
 		}
 	}
 	return false
 }
+
 //Chooses the direction for the assigned elevator
 func Requests_chooseDirection(e Elevator) Direction {
 	switch e.Dir {
@@ -61,6 +62,7 @@ func Requests_chooseDirection(e Elevator) Direction {
 		return DIRN_STOP
 	}
 }
+
 // Check if the assigned elevator should stop on the assigned floor
 func Requests_shouldStop(e Elevator) bool {
 	switch e.Dir {
@@ -74,6 +76,7 @@ func Requests_shouldStop(e Elevator) bool {
 		return true
 	}
 }
+
 // Clears the orders on the current floor for the assigned elevator
 func Requests_clearAtCurrentFloor(e Elevator) Elevator {
 
@@ -101,6 +104,7 @@ func Requests_clearAtCurrentFloor(e Elevator) Elevator {
 	}
 	return e
 }
+
 // Checking for new orders and assign the new order to the newOrderChan
 func Request_buttons(newOrderChan chan Keypress) {
 

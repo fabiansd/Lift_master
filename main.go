@@ -54,7 +54,7 @@ func main() {
 			case operations.NewOrder:
 				//fmt.Println("neworder - call the cost!")
 				//fmt.Println(message)
-				cost := queue.CalCost((message.Floor), (message.Button), operations.Fsm_floor(), driver.Elev_get_floor_sensor_signal(), operations.Fsm_direction())
+				cost := queue.CalCost((message.Floor), (message.Button), operations.Fsm_floor(), driver.Elev_get_floor_sensor_signal(), int(operations.Fsm_direction()))
 				//fmt.Println(cost)
 				outgoingMsg <- operations.Udp_message{Category: operations.Cost, Floor: message.Floor, Button: message.Button, Cost: cost}
 			case operations.CompletedOrder:
