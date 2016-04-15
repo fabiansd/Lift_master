@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 )
-
+//Global elevator
 var elevator Elevator
 
 func Fsm_elevator() Elevator {
@@ -41,16 +41,16 @@ func Fsm_printstatus() {
 	}
 }
 
-func Returnelevatorfloor() int {
-	return elevator.Floor
-}
-
 func setAllLights(es Elevator) {
 	for floor := 0; floor < driver.N_FLOORS; floor++ {
 		for btn := 0; btn < driver.N_BUTTONS; btn++ {
 			driver.Elev_set_button_lamp(btn, floor, es.Requests[floor][btn])
 		}
 	}
+}
+
+func SetGlobalLights(floor int, button int, value bool){
+	driver.Elev_set_button_lamp(button, floor, value)
 }
 
 //Setting new order in the elevators requests
@@ -72,11 +72,8 @@ func Fsm_neworder(btn_floor int, btn_type int) {
 
 	case EB_Idle:
 		elevator.Requests[btn_floor][btn_type] = true
-
 		elevator.Dir = Requests_chooseDirection(elevator)
-
 		if elevator.Dir == DIRN_STOP {
-			fmt.Println("Clear the floor!=")
 			driver.Elev_set_door_open_lamp(true)
 			elevator = Requests_clearAllAtCurrentFloor(elevator)
 			Timer_start()
@@ -100,7 +97,7 @@ func Fsm_onFloorArrival(newFloor int) {
 	if Requests_shouldStop(elevator) { //&& elevator.behaviour == MOVING??
 		driver.Elev_set_motor_direction(int(DIRN_STOP))
 		driver.Elev_set_door_open_lamp(true)
-		elevator = Requests_clearAtCurrentFloor(elevator)
+		elevator = Requests_clearAtCurrentFloor(elevator,false)
 		Timer_start()
 		setAllLights(elevator)
 		elevator.Behaviour = EB_DoorOpen
@@ -109,7 +106,14 @@ func Fsm_onFloorArrival(newFloor int) {
 }
 
 func Fsm_onDoorTimeout() {
-
+	//Sletter globale ordre gjort i samme etasje somheis etter door_timerout 
+	//for å hindre at orderen blir registrert på nytt pga knap-spam
+	if !Requests_below(elevator){
+		orderDeletedLocally <- Keypress{Floor:elevator.Floor,Button:int(B_Up)}
+	}
+	if !Requests_above(elevator){
+		orderDeletedLocally <- Keypress{Floor:elevator.Floor,Button:int(B_Down)}
+	}
 	switch elevator.Behaviour {
 	case EB_DoorOpen:
 		elevator.Dir = Requests_chooseDirection(elevator)

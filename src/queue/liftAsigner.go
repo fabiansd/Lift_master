@@ -1,26 +1,16 @@
 package queue
 
 import (
-	//"driver"
-	"fmt"
+	
 	"operations"
 	"time"
 )
-
-/*
-func RecieveCosts(costChan chan operations.Udp_message) {
-	for {
-		msg := <-costChan
-		fmt.Println("Cost")
-		fmt.Println(msg.Cost)
-		operations.Fsm_neworder(int(msg.Floor), msg.Button)
-	}
-}*/
 
 type Order struct {
 	Floor  int
 	Button int
 	timer  *time.Timer
+	Addr string
 }
 type ElevatorCost struct {
 	Cost int
@@ -29,7 +19,7 @@ type ElevatorCost struct {
 
 var elevatorsOnline int
 
-func RecieveCosts(costChan chan operations.Udp_message, newOrderChan chan operations.Keypress, orderCompleteChannel chan Order, messageOut chan operations.Udp_message, elevatorsOnlineChan chan int) {
+func RecieveCosts(costChan chan operations.Udp_message, messageOut chan operations.Udp_message, elevatorsOnlineChan chan int) {
 	waitForOrderChan := make(chan Order, 10)
 	OrderCostMap := make(map[Order][]ElevatorCost)
 	newOrderTimeout := make(chan *Order)
@@ -74,7 +64,6 @@ func RecieveCosts(costChan chan operations.Udp_message, newOrderChan chan operat
 				go costreplyTimer(newOrderTimeout, &newOrder)
 				OrderCostMap[newOrder] = []ElevatorCost{newCostReply}
 			}
-			fmt.Println("MAP: ", OrderCostMap)
 			AssignOrders(OrderCostMap, newOrder, false, messageOut, waitForOrderChan)
 
 		case no := <-newOrderTimeout:
@@ -85,30 +74,10 @@ func RecieveCosts(costChan chan operations.Udp_message, newOrderChan chan operat
 			//go waitForCompletion(waitForOrderCompleted, newOrderChan, orderCompleteChannel)
 		case eo := <-elevatorsOnlineChan:
 			elevatorsOnline = eo
-			fmt.Println("the update found its way to liftassigner: ", elevatorsOnline)
 		}
 
 	}
 }
-
-/*
-func waitForCompletion(order Order, newOrderChan chan operations.Keypress, orderCompleteChannel chan Order) {
-
-	waitTimer := time.NewTimer(time.Second * 5)
-	fmt.Println("wait for ordercomplete-timer started")
-
-	select {
-	case OC := <-orderCompleteChannel:
-		if order == OC {
-			fmt.Println("ordercompleted!", OC, "ORDER KILLED")
-
-		}
-	case <-waitTimer.C:
-		newOrderChan <- operations.Keypress{Floor: order.Floor, Button: order.Button}
-		fmt.Println("Resent to neworderchannel for re-broadcast")
-
-	}
-}*/
 
 func AssignOrders(OrderCostMap map[Order][]ElevatorCost, no Order, isCostreplyTimeout bool, messageOut chan operations.Udp_message, waitForOrderChan chan Order) {
 	//fmt.Println("no from timeout", no)
@@ -132,10 +101,8 @@ func AssignOrders(OrderCostMap map[Order][]ElevatorCost, no Order, isCostreplyTi
 			}
 
 			order.timer.Stop()
-			//waitForOrderChan <- order
-			fmt.Println("Order:{", order.Floor, " ", order.Button, "with cost: ", smallestCost, "} assigned to", scostElevator)
-			backupRequest[order.Floor][order.Button] = true
-			fmt.Println("The backuplist: ", backupRequest)
+			//fmt.Println("Order:{", order.Floor, " ", order.Button, "with cost: ", smallestCost, "} assigned to", scostElevator)
+			backupChan <- Order{Floor:order.Floor,Button:order.Button,Addr:scostElevator}
 			messageOut <- operations.Udp_message{Category: operations.AssignedOrder, Floor: order.Floor, Button: order.Button, Cost: smallestCost, AssignAddr: scostElevator}
 			delete(OrderCostMap, order)
 		}
@@ -143,7 +110,6 @@ func AssignOrders(OrderCostMap map[Order][]ElevatorCost, no Order, isCostreplyTi
 }
 
 func costreplyTimer(newOrderTimeout chan<- *Order, newOrder *Order) {
-	fmt.Println("costReply timeout timer started")
 	<-newOrder.timer.C
 	newOrderTimeout <- newOrder
 }

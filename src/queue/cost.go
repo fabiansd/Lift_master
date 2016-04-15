@@ -42,15 +42,9 @@ func CalCost(tarFloor, tarBtn, prevFloor, curFloor, curDir int) int {
 	qCopy.Floor, qCopy.Dir = incrementFloor(qCopy.Floor, int(qCopy.Dir)) //First incrementation
 	//Iterates through the orders, with an upper limit of 10
 	for n := 0; !(qCopy.Floor == tarFloor && operations.Requests_shouldStop(qCopy)) && n < 10; n++ {
-		//if !(q1.Floor == tarFloor) &&
-		//!(q1.Floor == tarFloor && operations.Requests_shouldStop(q1)) && {
 		if operations.Requests_shouldStop(qCopy) {
-			//fmt.Println("ShouldStop")
 			cost += 2
-			qCopy = operations.Requests_clearAtCurrentFloor(qCopy)
-			//qCopy.Requests[q1.Floor][operations.B_Up] = false
-			//qCopy.Requests[q1.Floor][operations.B_Down] = false
-			//qCopy.Requests[q1.Floor][operations.B_Inside] = false
+			qCopy = operations.Requests_clearAtCurrentFloor(qCopy,true)
 
 		}
 		qCopy.Dir = operations.Requests_chooseDirection(qCopy)

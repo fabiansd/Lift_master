@@ -4,7 +4,6 @@ import (
 	"driver"
 )
 
-//Types og directions
 type Direction int
 
 const (
@@ -55,9 +54,13 @@ type Keypress struct {
 }
 
 const (
-	Livefeed int = iota + 1
+	Killfeed int = iota + 1
 	NewOrder
 	CompletedOrder
 	Cost
 	AssignedOrder
 )
+const White = "\x1b[37;1m"
+const Red = "\x1b[31;1m"
+const Green = "\x1b[32;1m"
+const Yellow = "\x1b[33;1m"

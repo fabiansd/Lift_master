@@ -4,8 +4,17 @@ import (
 	"driver"
 	"time"
 )
-
+var orderDeletedLocally = make(chan Keypress, 100)
 //Checking for requests above the assigned elevator
+func Request_Poll(orderDeleted chan Keypress){
+	//go all request funbctions
+	for {
+		temp := <- orderDeletedLocally
+
+		orderDeleted <- Keypress{Floor: temp.Floor, Button:temp.Button}
+	}
+}
+
 func Requests_above(e Elevator) bool {
 	for f := e.Floor + 1; f < driver.N_FLOORS; f++ {
 		for btn := 0; btn < driver.N_BUTTONS; btn++ {
@@ -77,28 +86,46 @@ func Requests_shouldStop(e Elevator) bool {
 }
 
 // Clears the orders on the current floor for the assigned elevator
-func Requests_clearAtCurrentFloor(e Elevator) Elevator {
-
+func Requests_clearAtCurrentFloor(e Elevator,isCopy bool) Elevator {
 	e.Requests[e.Floor][B_Inside] = false
 	switch e.Dir {
 	case DIRN_UP:
 		e.Requests[e.Floor][B_Up] = false
+			if !isCopy{
+			orderDeletedLocally <- Keypress{Floor:e.Floor,Button:int(B_Up)}
+
+		}
 		if !Requests_above(e) {
 			e.Requests[e.Floor][B_Down] = false
+			if !isCopy{
+				orderDeletedLocally <- Keypress{Floor:e.Floor,Button:int(B_Down)}
+			}
 		}
 		break
 
 	case DIRN_DOWN:
 		e.Requests[e.Floor][B_Down] = false
+		if !isCopy{
+			orderDeletedLocally <- Keypress{Floor:e.Floor,Button:int(B_Down)}
+		}
 		if !Requests_below(e) {
 			e.Requests[e.Floor][B_Up] = false
+			if !isCopy{
+				orderDeletedLocally <- Keypress{Floor:e.Floor,Button:int(B_Up)}
+			}
 		}
 		break
 
 	case DIRN_STOP:
 	default:
 		e.Requests[e.Floor][B_Up] = false
+		if !isCopy{
+			orderDeletedLocally <- Keypress{Floor:e.Floor,Button:int(B_Up)}
+		}
 		e.Requests[e.Floor][B_Down] = false
+		if !isCopy{
+			orderDeletedLocally <- Keypress{Floor:e.Floor,Button:int(B_Down)}
+		}
 		break
 	}
 	return e
@@ -108,6 +135,7 @@ func Requests_clearAllAtCurrentFloor(e Elevator) Elevator {
 	e.Requests[e.Floor][B_Up] = false
 	e.Requests[e.Floor][B_Down] = false
 	e.Requests[e.Floor][B_Inside] = false
+	
 	return e
 }
 
