@@ -3,16 +3,39 @@ package operations
 import (
 	"driver"
 	"time"
+	"fmt"
+	"os"
 )
 var orderDeletedLocally = make(chan Keypress, 100)
 //Checking for requests above the assigned elevator
-func Request_Poll(orderDeleted chan Keypress){
-	//go all request funbctions
+func Request_Poll(orderDeleted chan Keypress, newOrderChan chan Keypress){
+	LoadBackup()
+	go Request_buttons(newOrderChan)
+	go Request_floorSensor()
+	go Request_timecheck()
+	go Request_elevatorfunctionality()
+	Fsm_onFloorArrival(driver.Elev_get_floor_sensor_signal())
 	for {
 		temp := <- orderDeletedLocally
 
 		orderDeleted <- Keypress{Floor: temp.Floor, Button:temp.Button}
 	}
+}
+
+
+func Request_elevatorfunctionality(){
+	timestamp := time.Now()
+	for{
+		if Fsm_behaviour() != EB_Moving{
+			timestamp = time.Now()
+		}else if Fsm_behaviour() == EB_Moving && (time.Since(timestamp).Seconds() > 28){
+			fmt.Println(Red, "ERROR: System function failure", Red)
+			fmt.Println(White)
+			driver.Elev_set_motor_direction(DIRN_STOP)
+			os.Exit(1)
+		}
+	}
+
 }
 
 func Requests_above(e Elevator) bool {
@@ -128,6 +151,7 @@ func Requests_clearAtCurrentFloor(e Elevator,isCopy bool) Elevator {
 		}
 		break
 	}
+	TakeBackup()
 	return e
 }
 
@@ -135,7 +159,7 @@ func Requests_clearAllAtCurrentFloor(e Elevator) Elevator {
 	e.Requests[e.Floor][B_Up] = false
 	e.Requests[e.Floor][B_Down] = false
 	e.Requests[e.Floor][B_Inside] = false
-	
+	TakeBackup()
 	return e
 }
 
@@ -149,7 +173,6 @@ func Request_buttons(newOrderChan chan Keypress) {
 			for btn := 0; btn < driver.N_BUTTONS; btn++ {
 				buttonPressed := driver.Elev_get_button_signal(btn, floor)
 				if buttonPressed && buttonPressed != prevReq[floor][btn] {
-					//Fsm_onRequestButtonPress(floor, ButtonType(btn),newOrderChan)
 					newOrderChan <- Keypress{floor, btn}
 				}
 				prevReq[floor][btn] = buttonPressed

@@ -3,9 +3,8 @@ package operations
 import (
 	"driver"
 	"fmt"
-	"time"
 )
-//Global elevator
+
 var elevator Elevator
 
 func Fsm_elevator() Elevator {
@@ -17,29 +16,22 @@ func Fsm_floor() int {
 func Fsm_direction() Direction {
 	return (elevator.Dir)
 }
-func Fsm_printstatus() {
-	for {
-		for newlines := 0; newlines < 50; newlines++ {
-			fmt.Println("")
-		}
-		fmt.Println("Current floor: ", elevator.Floor, "\n")
-		fmt.Println("Direction: ", elevator.Dir, "\n")
-		fmt.Println("Requests:\n     Down | UP | Cab \n4: ", elevator.Requests[3], "\n3: ", elevator.Requests[2], "\n2: ", elevator.Requests[1], "\n1: ", elevator.Requests[0], "\n")
-		switch elevator.Behaviour {
-		case EB_Idle:
-			fmt.Println("Elevator behaviour: IDLE\n")
-
-		case EB_DoorOpen:
-			fmt.Println("Elevator behaviour: DOOR OPEN\n")
-
-		case EB_Moving:
-			fmt.Println("Elevator behaviour: MOVING\n")
-
-		}
-
-		time.Sleep(300 * time.Millisecond)
-	}
+func Fsm_behaviour() ElevatorBehaviour {
+	return (elevator.Behaviour)
 }
+func Fsm_requests() [driver.N_FLOORS][driver.N_BUTTONS]bool{
+	return elevator.Requests
+}
+func Fsm_setRequest(i int, B_Inside int){
+	elevator.Requests[i][B_Inside] = true
+}
+
+func Fsm_printrequest(temp [driver.N_FLOORS][driver.N_BUTTONS]bool, requestType string) {
+	fmt.Println( "\n", requestType, "\n")
+	fmt.Println("     Down | UP | Cab \n4: ", temp[3], "\n3: ", temp[2], "\n2: ", temp[1], "\n1: ", temp[0], "\n")
+
+}
+
 
 func setAllLights(es Elevator) {
 	for floor := 0; floor < driver.N_FLOORS; floor++ {
@@ -85,15 +77,13 @@ func Fsm_neworder(btn_floor int, btn_type int) {
 		break
 
 	}
-
+	TakeBackup()
 	setAllLights(elevator)
 }
 
 func Fsm_onFloorArrival(newFloor int) {
-
 	elevator.Floor = newFloor
 	driver.Elev_set_floor_indicator(elevator.Floor)
-
 	if Requests_shouldStop(elevator) { //&& elevator.behaviour == MOVING??
 		driver.Elev_set_motor_direction(int(DIRN_STOP))
 		driver.Elev_set_door_open_lamp(true)
@@ -108,6 +98,8 @@ func Fsm_onFloorArrival(newFloor int) {
 func Fsm_onDoorTimeout() {
 	//Sletter globale ordre gjort i samme etasje somheis etter door_timerout 
 	//for å hindre at orderen blir registrert på nytt pga knap-spam
+	//Fsm_printstatus()
+	Fsm_printrequest(Fsm_requests(),"Local elevator requests")
 	if !Requests_below(elevator){
 		orderDeletedLocally <- Keypress{Floor:elevator.Floor,Button:int(B_Up)}
 	}
