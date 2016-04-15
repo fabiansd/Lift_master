@@ -10,10 +10,6 @@ import (
 	"queue"
 	"log"
 )
-//Global channels
-
-var newOrderChan = make(chan operations.Keypress, 100)
-
 
 func main() {
 	//Initializes the elevator
@@ -26,9 +22,12 @@ func main() {
 			break
 		}
 	}
+
+	//HAII
 	//Control channels
 	var outgoingMsg = make(chan operations.Udp_message, 1000)
 	var incomingMsg = make(chan operations.Udp_message, 1000)
+	var newOrderChan = make(chan operations.Keypress, 100)
 	var costChan = make(chan operations.Udp_message, 100)
 	var aliveChannel = make(chan []string)
 	var elevatorsOnlineChan = make(chan int)
@@ -41,12 +40,9 @@ func main() {
 
 	go network.UdpSendAlive("30000")
 	go network.UdpRecvAlive("30000", aliveChannel)
-	go operations.Request_Poll(orderDeleted)
-	go operations.Request_buttons(newOrderChan)
-	go operations.Request_floorSensor()
+	go operations.Request_Poll(orderDeleted, newOrderChan)
 	go terminateEngine()
 	//go operations.Fsm_printstatus()
-	go operations.Request_timecheck()
 	go queue.BackupHandler(newOrderChan,orderCompleteChannel,outgoingMsg)
 	go queue.RecieveCosts(costChan, outgoingMsg, elevatorsOnlineChan)
 
@@ -60,10 +56,7 @@ func main() {
 				costChan <- message
 			case operations.Killfeed:
 				if Laddr == message.AssignAddr{
-					fmt.Println(operations.Red, "ERROR: System function failure", operations.Red)
-					fmt.Println(operations.White)
-					driver.Elev_set_motor_direction(operations.DIRN_STOP)
-					os.Exit(1)
+					
 				}
 				//fmt.Println("recieving livefeed")
 			case operations.NewOrder:
@@ -95,25 +88,13 @@ func main() {
 			}
 		case alive := <-aliveChannel:
 			elevatorsOnline := len(alive)
-			fmt.Println("Number of alive elevators has been changed to: ", elevatorsOnline)
+			fmt.Println(operations.Yellow, "Number of alive elevators set to: ", elevatorsOnline, operations.White)
 			elevatorsOnlineChan <- elevatorsOnline
 		case orderDeleted:= <-orderDeleted:
 			
 			outgoingMsg <- operations.Udp_message{Category: operations.CompletedOrder, Floor: orderDeleted.Floor, Button: orderDeleted.Button, Cost: 0}
 		}	
 	}
-
-	//outgoingMsg <- operations.Udp_message{Category: operations.NewOrder, Floor: 1, Button: 1, Cost: 10000}
-
-	//operations.CloseConnectionChan <- true
-
-	//cmd := exec.Command("gnome-terminal", "-x", "go", "run", "main.go")
-	//cmd.Run()
-
-	//msg := network.Udp_message{Raddr: "broadcast", Data: object.Data, Length: 0}
-	halt := make(chan bool)
-	<-halt
-
 }
 
 func terminateEngine() { //kills engine when program is termianted
