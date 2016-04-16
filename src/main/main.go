@@ -2,13 +2,13 @@ package main
 
 import (
 	"driver"
+	"elevatorOperations"
 	"fmt"
+	"globalOperations"
+	"log"
 	"network"
-	"operations"
 	"os"
 	"os/signal"
-	"queue"
-	"log"
 )
 
 func main() {
@@ -25,14 +25,14 @@ func main() {
 
 	//HAII
 	//Control channels
-	var outgoingMsg = make(chan operations.Udp_message, 1000)
-	var incomingMsg = make(chan operations.Udp_message, 1000)
-	var newOrderChan = make(chan operations.Keypress, 100)
-	var costChan = make(chan operations.Udp_message, 100)
+	var outgoingMsg = make(chan elevatorOperations.Udp_message, 1000)
+	var incomingMsg = make(chan elevatorOperations.Udp_message, 1000)
+	var newOrderChan = make(chan elevatorOperations.Keypress, 100)
+	var costChan = make(chan elevatorOperations.Udp_message, 100)
 	var aliveChannel = make(chan []string)
 	var elevatorsOnlineChan = make(chan int)
-	var orderCompleteChannel = make(chan queue.Order, 100)
-	var orderDeleted = make(chan operations.Keypress, 100)
+	var orderCompleteChannel = make(chan globalOperations.Order, 100)
+	var orderDeleted = make(chan elevatorOperations.Keypress, 100)
 
 	Laddr := network.GetLocalIP() + ":22010"
 	fmt.Println("Laddr initialized", Laddr)
@@ -40,11 +40,10 @@ func main() {
 
 	go network.UdpSendAlive("30000")
 	go network.UdpRecvAlive("30000", aliveChannel)
-	go operations.Request_Poll(orderDeleted, newOrderChan)
+	go elevatorOperations.Request_Poll(orderDeleted, newOrderChan)
 	go terminateEngine()
-	//go operations.Fsm_printstatus()
-	go queue.BackupHandler(newOrderChan,orderCompleteChannel,outgoingMsg)
-	go queue.RecieveCosts(costChan, outgoingMsg, elevatorsOnlineChan)
+	go globalOperations.BackupHandler(newOrderChan, orderCompleteChannel, outgoingMsg)
+	go globalOperations.RecieveCosts(costChan, outgoingMsg, elevatorsOnlineChan)
 
 	//Handle events
 	for {
@@ -52,48 +51,46 @@ func main() {
 		//Poll for new messages from the UDP network
 		case message := <-incomingMsg:
 			switch message.Category {
-			case operations.Cost:
+			case elevatorOperations.Cost:
 				costChan <- message
-			case operations.Killfeed:
-				if Laddr == message.AssignAddr{
-					
-				}
-				//fmt.Println("recieving livefeed")
-			case operations.NewOrder:
-				operations.SetGlobalLights(message.Floor,message.Button,true)
-				cost := queue.CalCost((message.Floor), (message.Button), operations.Fsm_floor(), driver.Elev_get_floor_sensor_signal(), int(operations.Fsm_direction()))
-				outgoingMsg <- operations.Udp_message{Category: operations.Cost, Floor: message.Floor, Button: message.Button, Cost: cost}
-			case operations.CompletedOrder:
-				//Send the completed order to orderCompleteChannel to registrer the completion in backup
-				operations.SetGlobalLights(message.Floor,message.Button,false)
-				orderCompleteChannel <- queue.Order{Floor: message.Floor, Button: message.Button}
-
-			case operations.AssignedOrder:
+			case elevatorOperations.Killfeed:
 				if Laddr == message.AssignAddr {
-					operations.Fsm_neworder(message.Floor, message.Button)
+
+				}
+			case elevatorOperations.NewOrder:
+				elevatorOperations.SetGlobalLights(message.Floor, message.Button, true)
+				cost := globalOperations.CalCost((message.Floor), (message.Button), elevatorOperations.Fsm_floor(), driver.Elev_get_floor_sensor_signal(), int(elevatorOperations.Fsm_direction()))
+				outgoingMsg <- elevatorOperations.Udp_message{Category: elevatorOperations.Cost, Floor: message.Floor, Button: message.Button, Cost: cost}
+			case elevatorOperations.CompletedOrder:
+				elevatorOperations.SetGlobalLights(message.Floor, message.Button, false)
+				orderCompleteChannel <- globalOperations.Order{Floor: message.Floor, Button: message.Button}
+
+			case elevatorOperations.AssignedOrder:
+				if Laddr == message.AssignAddr {
+					elevatorOperations.Fsm_neworder(message.Floor, message.Button)
 				}
 			default:
 			}
 		//Poll for new orders
 		case neworder := <-newOrderChan:
 			switch neworder.Button {
-			case operations.B_Inside:
-				operations.Fsm_neworder(neworder.Floor, neworder.Button)
-			case operations.B_Up:
-				outgoingMsg <- operations.Udp_message{Category: operations.NewOrder, Floor: (neworder.Floor), Button: neworder.Button, Cost: 0}
-			case operations.B_Down:
-				outgoingMsg <- operations.Udp_message{Category: operations.NewOrder, Floor: (neworder.Floor), Button: neworder.Button, Cost: 0}
+			case elevatorOperations.B_Inside:
+				elevatorOperations.Fsm_neworder(neworder.Floor, neworder.Button)
+			case elevatorOperations.B_Up:
+				outgoingMsg <- elevatorOperations.Udp_message{Category: elevatorOperations.NewOrder, Floor: (neworder.Floor), Button: neworder.Button, Cost: 0}
+			case elevatorOperations.B_Down:
+				outgoingMsg <- elevatorOperations.Udp_message{Category: elevatorOperations.NewOrder, Floor: (neworder.Floor), Button: neworder.Button, Cost: 0}
 			default:
 				fmt.Println("Error: non-buttontype")
 			}
 		case alive := <-aliveChannel:
 			elevatorsOnline := len(alive)
-			fmt.Println(operations.Yellow, "Number of alive elevators set to: ", elevatorsOnline, operations.White)
+			fmt.Println(elevatorOperations.Yellow, "Number of alive elevators set to: ", elevatorsOnline, elevatorOperations.White)
 			elevatorsOnlineChan <- elevatorsOnline
-		case orderDeleted:= <-orderDeleted:
-			
-			outgoingMsg <- operations.Udp_message{Category: operations.CompletedOrder, Floor: orderDeleted.Floor, Button: orderDeleted.Button, Cost: 0}
-		}	
+		case orderDeleted := <-orderDeleted:
+
+			outgoingMsg <- elevatorOperations.Udp_message{Category: elevatorOperations.CompletedOrder, Floor: orderDeleted.Floor, Button: orderDeleted.Button, Cost: 0}
+		}
 	}
 }
 
@@ -101,6 +98,6 @@ func terminateEngine() { //kills engine when program is termianted
 	var c = make(chan os.Signal)
 	signal.Notify(c, os.Interrupt)
 	<-c
-	driver.Elev_set_motor_direction(operations.DIRN_STOP)
+	driver.Elev_set_motor_direction(elevatorOperations.DIRN_STOP)
 	log.Fatal("User terminated program")
 }

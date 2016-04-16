@@ -1,8 +1,8 @@
 package network
 
 import (
+	"elevatorOperations"
 	"net"
-	"operations"
 	"strconv"
 	"time"
 )
@@ -15,9 +15,9 @@ type UdpConnection struct {
 var baddr *net.UDPAddr //Broadcast address
 
 type udpMessage struct {
-	raddr  string //if receiving raddr=senders address, if sending raddr should be set to "broadcast" or an ip:port
+	raddr  string
 	data   []byte
-	length int //length of received data, in #bytes // N/A for sending
+	length int
 }
 
 func udpInit(localListenPort, broadcastListenPort, message_size int, send_ch, receive_ch chan udpMessage) (err error) {
@@ -33,7 +33,7 @@ func udpInit(localListenPort, broadcastListenPort, message_size int, send_ch, re
 	tempAddr := tempConn.LocalAddr()
 	laddr, err := net.ResolveUDPAddr("udp4", tempAddr.String())
 	laddr.Port = localListenPort
-	operations.Laddr = laddr.String()
+	elevatorOperations.Laddr = laddr.String()
 
 	//Creating local listening connections
 	localListenConn, err := net.ListenUDP("udp4", laddr)
@@ -50,28 +50,20 @@ func udpInit(localListenPort, broadcastListenPort, message_size int, send_ch, re
 
 	go udp_receive_server(localListenConn, broadcastListenConn, message_size, receive_ch)
 	go udp_transmit_server(localListenConn, broadcastListenConn, send_ch)
-	//go udp_connection_closer(localListenConn, broadcastListenConn)
 
-	//	fmt.Printf("Generating local address: \t Network(): %s \t String(): %s \n", laddr.Network(), laddr.String())
-	//	fmt.Printf("Generating broadcast address: \t Network(): %s \t String(): %s \n", baddr.Network(), baddr.String())
 	return err
 }
 
 func udp_transmit_server(lconn, bconn *net.UDPConn, send_ch <-chan udpMessage) {
 
-	//var n int
-
 	for {
-		//		fmt.Printf("udp_transmit_server: waiting on new value on Global_Send_ch \n")
 		msg := <-send_ch
-		//		fmt.Printf("Writing %s \n", msg.Data)
 		if msg.raddr == "broadcast" {
 			_, _ = lconn.WriteToUDP(msg.data, baddr)
 		} else {
 			raddr, _ := net.ResolveUDPAddr("udp", msg.raddr)
 			_, _ = lconn.WriteToUDP(msg.data, raddr)
 		}
-		//		fmt.Printf("udp_transmit_server: Sent %s to %s \n", msg.Data, msg.Raddr)
 	}
 }
 
@@ -99,11 +91,8 @@ func udp_connection_reader(conn *net.UDPConn, message_size int, rcv_ch chan<- ud
 
 	for {
 		buf := make([]byte, message_size)
-		//		fmt.Printf("udp_connection_reader: Waiting on data from UDPConn\n")
 		n, raddr, _ := conn.ReadFromUDP(buf)
 		buf = buf[:n]
-		//		fmt.Printf("udp_connection_reader: Received %s from %s \n", string(buf), raddr.String())
-
 		rcv_ch <- udpMessage{raddr: raddr.String(), data: buf, length: n}
 	}
 }

@@ -1,1 +1,1 @@
-export GOPATH=$HOME/Desktop/Lift_master;go install driver;go install operations;go install queue;go install network
+export GOPATH=$HOME/Desktop/Lift_master;go install driver;go install elevatorOperations;go install globalOperations;go install network

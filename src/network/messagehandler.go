@@ -1,15 +1,15 @@
 package network
 
 import (
+	"elevatorOperations"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net"
-	"operations"
 	"os"
 )
 
-func Init(outgoingMsg, incomingMsg chan operations.Udp_message) {
+func Init(outgoingMsg, incomingMsg chan elevatorOperations.Udp_message) {
 	// Ports randomly chosen to reduce likelihood of port collision.
 	const localListenPort = 22010
 	const broadcastListenPort = 22011
@@ -50,7 +50,7 @@ func GetLocalIP() string {
 // forwardOutgoing continuosly checks for messages to be sent on the network
 // by reading the OutgoingMsg channel. Each message read is sent to the udp file
 // as json.
-func forwardOutgoing(outgoingMsg <-chan operations.Udp_message, udpSend chan<- udpMessage) {
+func forwardOutgoing(outgoingMsg <-chan elevatorOperations.Udp_message, udpSend chan<- udpMessage) {
 	for {
 		msg := <-outgoingMsg
 
@@ -63,10 +63,10 @@ func forwardOutgoing(outgoingMsg <-chan operations.Udp_message, udpSend chan<- u
 	}
 }
 
-func forwardIncoming(incomingMsg chan<- operations.Udp_message, udpReceive <-chan udpMessage) {
+func forwardIncoming(incomingMsg chan<- elevatorOperations.Udp_message, udpReceive <-chan udpMessage) {
 	for {
 		udpMessage := <-udpReceive
-		var message operations.Udp_message
+		var message elevatorOperations.Udp_message
 
 		if err := json.Unmarshal(udpMessage.data[:udpMessage.length], &message); err != nil {
 			fmt.Printf("json.Unmarshal error: %s\n", err)

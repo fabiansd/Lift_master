@@ -8,7 +8,7 @@ import (
 const aliveSendInterval = 50 * time.Millisecond
 const aliveTimeout = 300 * time.Millisecond
 
-func udpSendAlive(port string) {
+func UdpSendAlive(port string) {
 
 	udpAddr, _ := net.ResolveUDPAddr("udp4", "255.255.255.255:"+port)
 	udpConn, _ := net.DialUDP("udp4", nil, udpAddr)
@@ -19,7 +19,7 @@ func udpSendAlive(port string) {
 	}
 }
 
-func udpRecvAlive(port string, peerListLocalCh chan []string) {
+func UdpRecvAlive(port string, peerListLocalCh chan []string) {
 
 	var buf [1024]byte
 
