@@ -5,10 +5,10 @@ import (
 	"time"
 )
 
-const aliveSendInterval = 70 * time.Millisecond
+const aliveSendInterval = 50 * time.Millisecond
 const aliveTimeout = 300 * time.Millisecond
 
-func UdpSendAlive(port string) {
+func udpSendAlive(port string) {
 
 	udpAddr, _ := net.ResolveUDPAddr("udp4", "255.255.255.255:"+port)
 	udpConn, _ := net.DialUDP("udp4", nil, udpAddr)
@@ -19,7 +19,7 @@ func UdpSendAlive(port string) {
 	}
 }
 
-func UdpRecvAlive(port string, peerListLocalCh chan []string) {
+func udpRecvAlive(port string, peerListLocalCh chan []string) {
 
 	var buf [1024]byte
 
@@ -30,10 +30,14 @@ func UdpRecvAlive(port string, peerListLocalCh chan []string) {
 	service := ":" + port
 	udpAddr, _ := net.ResolveUDPAddr("udp4", service)
 	readConn, _ := net.ListenUDP("udp4", udpAddr)
-
+	count := 4
 	for {
-		hasChanges = false
+		if count == 4 {
+			hasChanges = false
+			count = 0
+		}
 
+		// Ending read after one second has passed
 		readConn.SetReadDeadline(time.Now().Add(aliveTimeout))
 		_, fromAddress, err := readConn.ReadFromUDP(buf[0:])
 
@@ -51,6 +55,7 @@ func UdpRecvAlive(port string, peerListLocalCh chan []string) {
 
 		lastSeen[addrString] = time.Now()
 
+		//Removing IP of dead connection
 		for k, v := range lastSeen {
 			if time.Now().Sub(v) > aliveTimeout {
 				hasChanges = true
@@ -58,7 +63,7 @@ func UdpRecvAlive(port string, peerListLocalCh chan []string) {
 			}
 		}
 
-		if hasChanges {
+		if hasChanges && count == 3 {
 			peerList = nil
 
 			for k, _ := range lastSeen {
@@ -66,5 +71,6 @@ func UdpRecvAlive(port string, peerListLocalCh chan []string) {
 			}
 			peerListLocalCh <- peerList
 		}
+		count++
 	}
 }
