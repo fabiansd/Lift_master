@@ -28,7 +28,7 @@ func Request_elevatorfunctionality() {
 	for {
 		if Fsm_behaviour() != EB_Moving {
 			timestamp = time.Now()
-		} else if Fsm_behaviour() == EB_Moving && (time.Since(timestamp).Seconds() > 28) {
+		} else if Fsm_behaviour() == EB_Moving && (time.Since(timestamp).Seconds() > 28) { //28 seconds is our worst-case
 			fmt.Println(Red, "ERROR: System function failure", Red)
 			fmt.Println(White)
 			driver.Elev_set_motor_direction(DIRN_STOP)
