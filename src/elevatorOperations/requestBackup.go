@@ -13,12 +13,10 @@ func TakeBackup() {
 	requests := Fsm_requests()
 	data, err := json.Marshal(requests)
 	if err != nil {
-		log.Println(Yellow, "Marshal conversion failed", Yellow)
-		fmt.Println(White)
+		log.Println(Yellow, "Marshal conversion failed", White)
 	}
 	if err := ioutil.WriteFile("RequestBackup", data, 0644); err != nil {
-		log.Println(Yellow, "ioutil.WriteFile() failed", Yellow)
-		fmt.Println(White)
+		log.Println(Yellow, "ioutil.WriteFile() failed", White)
 	}
 }
 
@@ -29,12 +27,10 @@ func LoadBackup() {
 
 		data, err := ioutil.ReadFile("RequestBackup")
 		if err != nil {
-			log.Println(Yellow, "Failed to read file from disk", Yellow)
-			fmt.Println(White)
+			log.Println(Yellow, "Failed to read file from disk", White)
 		}
 		if err := json.Unmarshal(data, &requests); err != nil {
-			log.Println(Yellow, "Marshal conversion failed", Yellow)
-			fmt.Println(White)
+			log.Println(Yellow, "Marshal conversion failed", White)
 			fmt.Println(err)
 		}
 		Fsm_printrequest(requests, "Restoring backup requests")
