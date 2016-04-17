@@ -35,26 +35,22 @@ func RecieveCosts(costChan chan elevatorOperations.Udp_message, messageOut chan 
 				}
 			}
 
-			// check if the  order exists in the map
 			if CostReply, err := OrderCostMap[newOrder]; err {
 				exists := false
-				//check if ordercost is already registred
 				for n, cost := range CostReply {
 					if cost.Cost != newCostReply.Cost && cost.Addr == newCostReply.Addr {
-						//Deletes the cost element in the order-costlist to replace it if the cost
-						//has been updatet for a particular elavtor at this particular order
+						//Updates cost if elevator cost for an order is updated
 						OrderCostMap[newOrder] = append(OrderCostMap[newOrder][:n], OrderCostMap[newOrder][n+1:]...)
 					} else if cost == newCostReply {
 						exists = true
 					}
 				}
-				//Register order if the cost is unregistred
 				if !exists {
 					newOrder.timer.Reset(4 * time.Second)
 					OrderCostMap[newOrder] = append(OrderCostMap[newOrder], newCostReply)
 
 				}
-			} else { // If not existant, add the new order to the map
+			} else { // If non-existent, add the new order to the map
 
 				newOrder.timer = time.NewTimer(4 * time.Second)
 				go costreplyTimer(newOrderTimeout, &newOrder)
@@ -71,10 +67,11 @@ func RecieveCosts(costChan chan elevatorOperations.Udp_message, messageOut chan 
 }
 
 func AssignOrders(OrderCostMap map[Order][]ElevatorCost, no Order, isCostreplyTimeout bool, messageOut chan elevatorOperations.Udp_message, waitForOrderChan chan Order) {
-	for order, costList := range OrderCostMap { //for each costlist
+	for order, costList := range OrderCostMap {
 
 		if (isCostreplyTimeout && order == no) || len(costList) == elevatorsOnline {
-
+			
+			//Chooses the lowest cost, or the elevator with highest IP, in the ordercostmap 
 			smallestCost := 10000
 			scostElevator := ""
 			for _, cost := range costList {
