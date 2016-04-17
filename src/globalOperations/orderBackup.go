@@ -4,9 +4,10 @@ import (
 	"elevatorOperations"
 	"fmt"
 	"time"
+	"driver"
 )
 
-var backupRequest [4][3]bool 
+var backupRequest [driver.N_FLOORS][driver.N_BUTTONS]bool 
 var backupChan = make(chan Order, 100)
 var timeoutChan = make(chan Order, 100)
 
