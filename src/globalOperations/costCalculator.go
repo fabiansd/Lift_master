@@ -6,41 +6,37 @@ import (
 	"log"
 )
 
-//Calculates cost by simulating the new order among the existing local orders for the elevator
-//Each floor-stop and travel between floors has cost of 2
-//If the elevator starts between two floors, the cost will only be 1 for this
+//Calculates cost by simulating the new order appended to the local elevator 
 func CalCost(tarFloor, tarBtn, prevFloor, curFloor, curDir int) int {
-	//fmt.Println("copy of elevator")
 	var qCopy elevatorOperations.Elevator
-	qCopy.Floor = elevatorOperations.Fsm_floor()     //Copies floor
-	qCopy.Dir = elevatorOperations.Direction(curDir) //Copies the direction of the local elevator
+	qCopy.Floor = elevatorOperations.Fsm_floor()
+	qCopy.Dir = elevatorOperations.Direction(curDir)
 
-	for f := 0; f < driver.N_FLOORS; f++ { //copying local requests
+	for f := 0; f < driver.N_FLOORS; f++ {
 		for b := 0; b < driver.N_BUTTONS; b++ {
 			qCopy.Requests[f][b] = elevatorOperations.Fsm_elevator().Requests[f][b]
 		}
 	}
-
 	cost := 0
-
 	qCopy.Requests[qCopy.Floor][tarBtn] = true
-	//start the elevator in the right direction
+
 	if tarFloor-curFloor < 0 {
 		qCopy.Dir = -1
 	} else if tarFloor-curFloor > 0 {
 		qCopy.Dir = 1
 	}
+	// local elevator copied
 
 	if curFloor == -1 {
-		//cost is set to one if elev between two floors
 		cost++
 	} else if qCopy.Dir != elevatorOperations.DIRN_STOP {
-		//cost is set to two if elev moving at floor
 		cost += 2
 	}
-
-	qCopy.Floor, qCopy.Dir = incrementFloor(qCopy.Floor, int(qCopy.Dir)) //First incrementation
-	//Iterates through the orders, with an upper limit of 10
+	
+	// Simulation iteration-cap set to 10
+	//Each floor-stop and travel between floors has cost of 2
+	//If the elevator starts between two floors, the cost will be 1
+	qCopy.Floor, qCopy.Dir = incrementFloor(qCopy.Floor, int(qCopy.Dir))
 	for n := 0; !(qCopy.Floor == tarFloor && elevatorOperations.Requests_shouldStop(qCopy)) && n < 10; n++ {
 		if elevatorOperations.Requests_shouldStop(qCopy) {
 			cost += 2
@@ -64,7 +60,7 @@ func incrementFloor(floor, dir int) (int, elevatorOperations.Direction) {
 	case elevatorOperations.DIRN_UP:
 		floor++
 	case elevatorOperations.DIRN_STOP:
-		//nun
+		//none
 	default:
 		log.Fatalln("incrementFloor(): invalid dir, not incremented")
 	}
