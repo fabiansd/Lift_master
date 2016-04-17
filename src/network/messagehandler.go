@@ -10,7 +10,6 @@ import (
 )
 
 func Init(outgoingMsg, incomingMsg chan elevatorOperations.Udp_message) {
-	// Ports randomly chosen to reduce likelihood of port collision.
 	const localListenPort = 22010
 	const broadcastListenPort = 22011
 
@@ -29,7 +28,6 @@ func Init(outgoingMsg, incomingMsg chan elevatorOperations.Udp_message) {
 	log.Println("Network initialised.")
 }
 
-// aliveSpammer periodically sends messages on the network to notify it is alive
 func GetLocalIP() string {
 	var localIP string
 	addrs, err := net.InterfaceAddrs()
@@ -47,9 +45,6 @@ func GetLocalIP() string {
 	return localIP
 }
 
-// forwardOutgoing continuosly checks for messages to be sent on the network
-// by reading the OutgoingMsg channel. Each message read is sent to the udp file
-// as json.
 func forwardOutgoing(outgoingMsg <-chan elevatorOperations.Udp_message, udpSend chan<- udpMessage) {
 	for {
 		msg := <-outgoingMsg
