@@ -23,7 +23,6 @@ func main() {
 		}
 	}
 
-	//HAII
 	//Control channels
 	var outgoingMsg = make(chan elevatorOperations.Udp_message, 1000)
 	var incomingMsg = make(chan elevatorOperations.Udp_message, 1000)
@@ -94,7 +93,7 @@ func main() {
 	}
 }
 
-func terminateEngine() { //kills engine when program is termianted
+func terminateEngine() { 
 	var c = make(chan os.Signal)
 	signal.Notify(c, os.Interrupt)
 	<-c
