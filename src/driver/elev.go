@@ -7,7 +7,6 @@ import (
 // Wrapper for libComedi Elevator control.
 // These functions provides an interface to the elevators in the real time lab
 
-// Number of signals and lamps on a per-floor basis (excl sensor)
 const N_FLOORS = 4
 const N_BUTTONS = 3
 
@@ -27,22 +26,17 @@ var button_channel_matrix = [N_FLOORS][N_BUTTONS]int{
 
 func Elev_init() bool {
 
-	// Init hardware
 	if Io_init() == false {
 		return false
 	}
 
-	// Zero all floor button lamps
 	for floor := 0; floor < N_FLOORS; floor++ {
 		for button := 0; button < N_BUTTONS; button++ {
 			Elev_set_button_lamp(button, floor, false)
 		}
 	}
-	// Clear stop lamp, door open lamp, and set floor indicator to ground floor.
 	Elev_set_door_open_lamp(false)
 	Elev_set_floor_indicator(0)
-
-	// Return success.
 	return true
 }
 
@@ -80,7 +74,7 @@ func Elev_get_floor_sensor_signal() int {
 	}
 }
 
-func Elev_set_floor_indicator(floor int) { //Kanskje fusk
+func Elev_set_floor_indicator(floor int) {
 	if floor < 0 {
 		log.Fatalf("Floor number is negative!")
 	}
@@ -88,7 +82,6 @@ func Elev_set_floor_indicator(floor int) { //Kanskje fusk
 		log.Fatalf("Floornumber is above topfloor")
 	}
 
-	// Binary encoding. One light must always be on.
 	if floor&0x02 > 0 {
 		Io_set_bit(LIGHT_FLOOR_IND1)
 	} else {
