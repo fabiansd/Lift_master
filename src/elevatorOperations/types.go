@@ -46,7 +46,6 @@ type Udp_message struct {
 }
 
 var Laddr string
-var CloseConnectionChan = make(chan bool)
 
 type Keypress struct {
 	Floor  int
@@ -54,13 +53,11 @@ type Keypress struct {
 }
 
 const (
-	Killfeed int = iota + 1
-	NewOrder
+	NewOrder int = iota + 1
 	CompletedOrder
 	Cost
 	AssignedOrder
 )
 const White = "\x1b[37;1m"
 const Red = "\x1b[31;1m"
-const Green = "\x1b[32;1m"
 const Yellow = "\x1b[33;1m"
