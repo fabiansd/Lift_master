@@ -45,7 +45,7 @@ type Udp_message struct {
 	AssignAddr string
 }
 
-var Laddr string //local IP address
+var Laddr string
 var CloseConnectionChan = make(chan bool)
 
 type Keypress struct {
