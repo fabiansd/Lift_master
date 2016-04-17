@@ -52,10 +52,6 @@ func main() {
 			switch message.Category {
 			case elevatorOperations.Cost:
 				costChan <- message
-			case elevatorOperations.Killfeed:
-				if Laddr == message.AssignAddr {
-
-				}
 			case elevatorOperations.NewOrder:
 				elevatorOperations.SetGlobalLights(message.Floor, message.Button, true)
 				cost := globalOperations.CalCost((message.Floor), (message.Button), elevatorOperations.Fsm_floor(), driver.Elev_get_floor_sensor_signal(), int(elevatorOperations.Fsm_direction()))
