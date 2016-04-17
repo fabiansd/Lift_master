@@ -159,7 +159,6 @@ func Requests_clearAllAtCurrentFloor(e Elevator) Elevator {
 	return e
 }
 
-// Checking for new orders and assign the new order to the newOrderChan
 func Request_buttons(newOrderChan chan Keypress) {
 
 	for {
