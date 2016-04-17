@@ -12,7 +12,7 @@ type UdpConnection struct {
 	Timer *time.Timer
 }
 
-var baddr *net.UDPAddr //Broadcast address
+var baddr *net.UDPAddr
 
 type udpMessage struct {
 	raddr  string
@@ -21,13 +21,11 @@ type udpMessage struct {
 }
 
 func udpInit(localListenPort, broadcastListenPort, message_size int, send_ch, receive_ch chan udpMessage) (err error) {
-	//Generating broadcast address
 	baddr, err = net.ResolveUDPAddr("udp4", "129.241.187.255:"+strconv.Itoa(broadcastListenPort))
 	if err != nil {
 		return err
 	}
 
-	//Generating localaddress
 	tempConn, err := net.DialUDP("udp4", nil, baddr)
 	defer tempConn.Close()
 	tempAddr := tempConn.LocalAddr()
@@ -35,13 +33,11 @@ func udpInit(localListenPort, broadcastListenPort, message_size int, send_ch, re
 	laddr.Port = localListenPort
 	elevatorOperations.Laddr = laddr.String()
 
-	//Creating local listening connections
 	localListenConn, err := net.ListenUDP("udp4", laddr)
 	if err != nil {
 		return err
 	}
 
-	//Creating listener on broadcast connection
 	broadcastListenConn, err := net.ListenUDP("udp", baddr)
 	if err != nil {
 		localListenConn.Close()
